@@ -1,0 +1,152 @@
+version: '3'
+
+# [DOCKERS]
+services:
+
+  # 1 - NGINX
+  nginx:
+    image: nginx
+    build: ./requirements/nginx
+    ports:
+      - "443:443"
+    env_file:
+      - .env
+    volumes:
+      - wordpress_data:/var/www/html/
+    depends_on:
+      - wordpress
+    networks:
+      - network_loup
+    restart: always
+
+  # 2 - MARIADB
+  mariadb:
+    image: mariadb
+    build: ./requirements/mariadb
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - "3306"
+    env_file:
+      - .env
+    networks:
+      - network_loup
+    restart: always
+
+  # 3 - WORDPRESS
+  wordpress:
+    image: wordpress
+    build: ./requirements/wordpress
+    volumes:
+      - wordpress_data:/var/www/html/
+    ports:
+      - "9000"
+    env_file:
+      - .env
+    depends_on:
+      - mariadb
+    networks:
+      - network_loup
+    restart: always
+
+  # 4 - MYWEBSITE (bonus)
+  mywebsite:
+    image: mywebsite
+    build: ./bonus/mywebsite
+    ports:
+      - "7654:7654"
+    networks:
+      - network_loup
+    restart: always
+
+  # 5 - FTP SERVER (bonus)
+  ftp-server:
+    image: ftp-server
+    build: ./bonus/ftp-server
+    ports:
+      - "21:21"
+      - "40000-40008:40000-40008"
+    volumes:
+      - wordpress_data:/home/loumarti/ftp_content/
+    networks:
+      - network_loup
+    env_file:
+      - .env
+    restart: always
+
+  # 6 - ADMINER (bonus)
+  adminer:
+    image: adminer
+    build: ./bonus/adminer
+    ports:
+      - "5123:5123"
+    networks:
+      - network_loup
+    env_file:
+      - .env
+    restart: always
+  
+  # 7 - CADVISOR (bonus)
+  cadvisor:
+    image: cadvisor
+    build: ./bonus/cAdvisor
+    ports:
+      - "8888:8888"
+    networks:
+      - network_loup
+    restart: always
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
+  # 8 - REDIS (bonus)
+  redis:
+    image: redis
+    build: ./bonus/redis
+    ports:
+      - "6379:6379"
+    networks:
+      - network_loup
+    restart: always
+    depends_on:
+      - wordpress
+    env_file:
+      - .env
+    volumes:
+      - redis_data:/data
+
+
+# [NETWORKS]
+networks:
+  network_loup:
+    driver: bridge
+
+
+# [VOLUMES]
+volumes:
+
+  # volume 1
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/loumarti/data/maria
+
+  # volume 2
+  wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/loumarti/data/wp
+
+  # volume 3
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/loumarti/data/redis
