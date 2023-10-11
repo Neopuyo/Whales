@@ -4,7 +4,7 @@
 
 ## Docker containers
 
-A 42 exercise to learn docker and docker-compose. The aim is to create a local server composed of several services.
+The 42 project called <i>Inception</i> to learn docker, docker-compose and much more. The aim is to create a local server composed of several services.
 Each service is a container. All server are connected through a network and each container <b>must be build from a debian image</b>.
 For exemple using : `FROM wordpress:latest` is forbidden.
 
